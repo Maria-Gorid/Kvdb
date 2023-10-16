@@ -1,4 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Xml.Serialization;
 
 namespace Kvdb
 {
@@ -20,7 +22,7 @@ namespace Kvdb
                         }
                         else
                         {
-                            Console.WriteLine("");
+                            Console.WriteLine("");// переписать
                         }
                         db[""][param[1]] = param[2];
                     }
@@ -29,9 +31,18 @@ namespace Kvdb
                     {
                         if (db.ContainsKey(param[1]))
                         {
-                            
+                            if (db[param[1]].ContainsKey(param[2]))
+                            {
+                                Console.WriteLine(db[param[1]][param[2]]);
+                            }
+                            else
+                            {
+                                Console.WriteLine("");// переписать
+                            }
+                            db[param[1]][param[2]] = param[3];
                         }
                     }
+                    
                     break;
                 case "get":
                     if (param.Length == 2)
@@ -39,6 +50,18 @@ namespace Kvdb
                         if (db[""].ContainsKey(param[1]))
                         {
                             Console.WriteLine(db[""][param[1]]);
+                        }
+                        else
+                        {
+                            Console.WriteLine("");
+                        }
+                        
+                    }
+                    if (param.Length == 3)
+                    {
+                        if (db[param[1]].ContainsKey(param[2]))
+                        {
+                            Console.WriteLine(db[param[1]][param[2]]);
                         }
                         else
                         {
@@ -61,17 +84,51 @@ namespace Kvdb
                         }
                         
                     }
+                    if (param.Length == 3)
+                    {
+                        if (db[param[1]].ContainsKey(param[2]))
+                        {
+                            Console.WriteLine(db[param[1]][param[2]]);
+                            db[param[1]].Remove(param[2]);
+                        }
+                        else
+                        {
+                            Console.WriteLine("");
+                        }
+                        
+                    }
                     break;
             }
+        }
+
+        public static void Deserialize()
+        {
+            XmlSerializer formatter = new XmlSerializer(typeof(Dictionary<string, Dictionary<string, string>>));
+            FileStream file = new FileStream("data.db", FileMode.OpenOrCreate);
+            db = formatter.Deserialize(file) as Dictionary<string, Dictionary<string, string>> ;
+            if (db == null)
+            {
+                db = new Dictionary<string, Dictionary<string, string>>();
+                db[""] = new Dictionary<string, string>();
+                
+            }
+            file.Close();
+        }
+        public static void Serialize()
+        {
+            XmlSerializer formatter = new XmlSerializer(typeof(Dictionary<string, Dictionary<string, string>>));
+            FileStream file = new FileStream("data.db", FileMode.OpenOrCreate);
+            formatter.Serialize(file, db);
+            file.Close();
         }
         
         public static void Main(string[] args)
         {
-            db[""] = new Dictionary<string, string>();
-            Parse("put 25 100");
-            Parse("get 27");
-            Parse("remove 78");
-            Parse("remove 25");
+            Deserialize();
+            string input = Console.ReadLine();
+            Parse(input);
+            Serialize();
+            
         }
     }
 }
